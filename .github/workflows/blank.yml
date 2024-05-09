@@ -22,17 +22,8 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-name: Upload Website
+       name: Upload Website
 
-on:
-  push:
-    branches:
-    - master
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
     - uses: actions/checkout@master
     - uses: jakejarvis/s3-sync-action@master
       with:
