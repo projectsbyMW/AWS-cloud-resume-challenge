@@ -224,11 +224,12 @@ margin-bottom: 50px;
 {
 	margin-top: 20px;
 	display: flex;
-	align-content: center;
 	text-transform: uppercase;
-	color: #021172;
 	font-weight: 500;
 	font-family: 'Times New Roman', Times, serif;
+	color: #003147;
+    font-size: 1.2em;
+	text-align: center;
 }
 
 .about .box .text h4
