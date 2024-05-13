@@ -220,6 +220,13 @@ margin-bottom: 50px;
 	font-weight: 600;
 }
 
+.VisitorCounter
+{
+	text-transform: uppercase;
+	color: #848c90;
+	font-weight: 600;
+}
+
 .about .box .text h4
 {
 	text-transform: uppercase;
