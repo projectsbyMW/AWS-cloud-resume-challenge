@@ -220,13 +220,14 @@ margin-bottom: 50px;
 	font-weight: 600;
 }
 
-.Visitor_Counter
+.Visitor_Counter h4
 {
+	margin-top: 20px;
 	display: flex;
 	align-items: center;
 	text-transform: uppercase;
-	color: #848c90;
-	font-weight: 600;
+	color: #061a24;
+	font-weight: 300;
 }
 
 .about .box .text h4
