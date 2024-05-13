@@ -222,6 +222,8 @@ margin-bottom: 50px;
 
 .Visitor_Counter
 {
+	display: flex;
+	align-items: center;
 	text-transform: uppercase;
 	color: #848c90;
 	font-weight: 600;
