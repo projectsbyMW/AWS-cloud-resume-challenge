@@ -3,6 +3,7 @@
 
 # all the local terraform files 
 **/.terraform/*
+.terraform/*
 
 # all the state and the state backup files
 *.tfstate
