@@ -1,0 +1,9 @@
+# all the log files
+*.log
+
+# all the local terraform files 
+**/.terraform/*
+
+# all the state and the state backup files
+*.tfstate
+*.tfstate.*
