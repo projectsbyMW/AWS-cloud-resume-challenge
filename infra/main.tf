@@ -9,7 +9,7 @@ terraform {
 
 
 provider "aws" {
-  region  = "us-east-1"
+  profile = "prod"
                }
 
 resource "aws_s3_bucket" "resume_deploy" {
@@ -23,7 +23,7 @@ resource "aws_s3_bucket_cors_configuration" "resume_deploy" {
     allowed_headers = [ "*" ]
     allowed_methods = [ "GET","PUT","POST","DELETE","HEAD" ]
     allowed_origins = [ "*" ]
-    expose_headers  = ["ETag"]
+    expose_headers  = ["ETag","x-amz-meta-custom-header"]
     max_age_seconds = 0
   }
 
@@ -37,5 +37,6 @@ resource "aws_s3_bucket_website_configuration" "resume_deploy" {
 }
 
 output "s3_website_endpoint" {
-  value = aws_s3_bucket.resume_deploy.website_endpoint
+  value = aws_s3_bucket_website_configuration.resume_deploy.website_endpoint
 }
+
