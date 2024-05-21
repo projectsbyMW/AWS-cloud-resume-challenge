@@ -6,7 +6,7 @@ function getLambdaAPI() {
                                                                       }
                                                               };
 
-                   xhttp.open("GET", "madheshwaranresumedeploy.s3-website-us-east-1.amazonaws.com",true);
+                   xhttp.open("GET", "https://2g6twclm4h.execute-api.us-east-1.amazonaws.com/dev1/Website_Visitors_Count",true);
                    xhttp.send();
                                                               }
  
