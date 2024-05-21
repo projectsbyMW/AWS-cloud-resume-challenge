@@ -92,34 +92,62 @@ output "s3_website_endpoint" {
   value = aws_s3_bucket_website_configuration.resume_deploy.website_endpoint
 }
 
-data "aws_iam_policy_document" "assume_role" {
-  statement {
-    effect = "Allow"
+resource "aws_iam_role_policy" "Dynamo_policy" {
+  name = "Dynamo_policy"
+  role = aws_iam_role.DynamoDB_Access_For_Lambda.id
 
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-
-    actions = ["sts:AssumeRole"]
-  }
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+        "dynamodb:GetItem",
+        "dynamodb:PutItem",
+        "dynamodb:UpdateItem",
+        "dynamodb:ListTables",
+        "dynamodb:Scan",
+        "dynamodb:Query",
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem"
+      ]
+        Effect   = "Allow"
+        Resource = "${aws_dynamodb_table.Website_Count.arn}"
+      },
+    ]
+  })
 }
 
-resource "aws_iam_role" "iam_for_lambda" {
-  name               = "iam_for_lambda"
-  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+
+resource "aws_iam_role" "DynamoDB_Access_For_Lambda" {
+  name               = "DynamoDB_Access_For_Lambda"
+
+assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = ["sts:AssumeRole"]
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      },
+    ]
+  })
 }
 
 
-resource "aws_lambda_function" "resume_deploy" {
+resource "aws_lambda_function" "lambda" {
   # If the file is not in the current working directory you will need to include a
   # path.module in the filename.
   function_name = "Lambda_for_DynamoDB"
-  role          = aws_iam_role.iam_for_lambda.arn
-  handler       = "index.test"
+  role          = aws_iam_role.DynamoDB_Access_For_Lambda.arn
+  handler       = "index.handler"
   s3_bucket = "madheshwaranresumedeploy"
   s3_key = "infra/bundle.zip"
-  runtime = "python3.9"
+  runtime = "python3.12"
 
   environment {
     variables = {
@@ -129,6 +157,100 @@ resource "aws_lambda_function" "resume_deploy" {
 }
 
 
+# API Gateway
+resource "aws_api_gateway_rest_api" "api" {
+  name = "Website_Count"
+}
+
+resource "aws_api_gateway_resource" "resource" {
+  path_part   = "Website_Visitors_Count"
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+resource "aws_api_gateway_method" "method" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.resource.id
+  http_method   = "GET"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_integration" "integration" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.resource.id
+  http_method             = aws_api_gateway_method.method.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.lambda.invoke_arn
+}
+
+# Lambda
+resource "aws_lambda_permission" "apigw_lambda" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn = "arn:aws:execute-api:us-east-1:381492075565:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.method.http_method}${aws_api_gateway_resource.resource.path}"
+}
 
 
 
+
+resource "aws_api_gateway_method_response" "resume_deploy" {
+  depends_on      = [aws_api_gateway_method.method]
+  rest_api_id     = aws_api_gateway_rest_api.api.id
+  resource_id     = aws_api_gateway_resource.resource.id
+  http_method     = aws_api_gateway_method.method.http_method
+  status_code     = 200
+  response_models = { "application/json" = "Empty" }
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true,
+  }
+}
+resource "aws_api_gateway_integration_response" "integrationresponse" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.resource.id
+  http_method = aws_api_gateway_method.method.http_method
+  status_code = aws_api_gateway_method_response.resume_deploy.status_code
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'*'",
+    "method.response.header.Access-Control-Allow-Methods" = "'POST,OPTIONS,GET,PUT,PATCH,DELETE'",
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
+}
+resource "aws_api_gateway_deployment" "resume_deploy" {
+  depends_on  = [aws_api_gateway_integration_response.integrationresponse, aws_api_gateway_integration.integration]
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  stage_name  = "dev1"
+}
+
+resource "aws_dynamodb_table" "Website_Count" {
+  name           = "Website-Count"
+  billing_mode   = "PAY_PER_REQUEST"
+
+  hash_key       = "Id"
+
+  attribute {
+    name = "Id"
+    type = "S"
+  }
+
+  tags = {
+    Name        = "dynamodb-table-1"
+    Environment = "production"
+  }
+}
+
+resource "aws_dynamodb_table_item" "Website_Count" {
+  table_name = aws_dynamodb_table.Website_Count.name
+  hash_key   = aws_dynamodb_table.Website_Count.hash_key
+
+  item = <<ITEM
+{
+  "Id": {"S": "Visitors_Count"},
+  "Visitors": {"N": "0"}
+}
+ITEM
+}
