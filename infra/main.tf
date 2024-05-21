@@ -10,6 +10,7 @@ terraform {
 
 provider "aws" {
   profile = "prod"
+  region = "us-east-1"
                }
 
 resource "aws_s3_bucket" "resume_deploy" {
@@ -90,3 +91,44 @@ resource "aws_s3_bucket_website_configuration" "resume_deploy" {
 output "s3_website_endpoint" {
   value = aws_s3_bucket_website_configuration.resume_deploy.website_endpoint
 }
+
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name               = "iam_for_lambda"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+
+resource "aws_lambda_function" "resume_deploy" {
+  # If the file is not in the current working directory you will need to include a
+  # path.module in the filename.
+  function_name = "Lambda_for_DynamoDB"
+  role          = aws_iam_role.iam_for_lambda.arn
+  handler       = "index.test"
+  s3_bucket = "madheshwaranresumedeploy"
+  s3_key = "infra/bundle"
+  runtime = "python3.9"
+
+  environment {
+    variables = {
+      foo = "bar"
+    }
+  }
+}
+
+
+
+
+
