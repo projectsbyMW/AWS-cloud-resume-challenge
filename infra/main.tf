@@ -113,7 +113,7 @@ resource "aws_iam_role_policy" "Dynamo_policy" {
         "dynamodb:BatchWriteItem"
       ]
         Effect   = "Allow"
-        Resource = "${aws_dynamodb_table.Website_Count.arn}"
+        Resource = "*"
       },
     ]
   })
@@ -144,7 +144,7 @@ resource "aws_lambda_function" "lambda" {
   # path.module in the filename.
   function_name = "Lambda_for_DynamoDB"
   role          = aws_iam_role.DynamoDB_Access_For_Lambda.arn
-  handler       = "index.handler"
+  handler       = "lambdafunction.lambda_handler"
   s3_bucket = "madheshwaranresumedeploy"
   s3_key = "infra/bundle.zip"
   runtime = "python3.12"
@@ -227,7 +227,7 @@ resource "aws_api_gateway_deployment" "resume_deploy" {
 }
 
 resource "aws_dynamodb_table" "Website_Count" {
-  name           = "Website-Count"
+  name           = "Website_Count"
   billing_mode   = "PAY_PER_REQUEST"
 
   hash_key       = "Id"

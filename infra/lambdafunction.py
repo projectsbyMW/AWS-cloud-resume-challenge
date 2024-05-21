@@ -2,7 +2,7 @@ import json
 import boto3
 from boto3.dynamodb.conditions import Key #used to access DynamoDB table
 
-TABLE_NAME = "Website_visit_count" 
+TABLE_NAME = "Website_Count" 
 
 # Creating the DynamoDB Client
 dynamodb_client = boto3.client('dynamodb', region_name="us-east-1")
@@ -16,14 +16,14 @@ def lambda_handler(event, context):
     
     response = table.get_item(
     Key={
-        "id":'Visitor_Count'
+        "Id":'Visitors_Count'
         }
                              )
     item=response['Item']
     
     table.update_item(
     Key={
-        "id" : 'Visitor_Count',
+        "Id" : 'Visitors_Count',
         },
     UpdateExpression="SET Visitors = :val1",
     ExpressionAttributeValues={
@@ -37,5 +37,5 @@ def lambda_handler(event, context):
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
                    },
-        "body": json.dumps({"Total_Visitors": str(item['Visitors'] + 1)})
+        "body": json.dumps(str(item['Visitors'] + 1))
           }
