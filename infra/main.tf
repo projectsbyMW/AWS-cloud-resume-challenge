@@ -118,7 +118,7 @@ resource "aws_lambda_function" "resume_deploy" {
   role          = aws_iam_role.iam_for_lambda.arn
   handler       = "index.test"
   s3_bucket = "madheshwaranresumedeploy"
-  s3_key = "infra/bundle"
+  s3_key = "infra/bundle.zip"
   runtime = "python3.9"
 
   environment {
