@@ -254,3 +254,80 @@ resource "aws_dynamodb_table_item" "Website_Count" {
 }
 ITEM
 }
+
+
+
+resource "aws_route53_zone" "resume_deploy" {
+  name = "madheshwaran.site"
+}
+resource "aws_route53_record" "resume_deploy" {
+  zone_id = aws_route53_zone.resume_deploy.zone_id
+  name    = "madheshwaran.site"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.resume_deploy.domain_name
+    zone_id                = aws_cloudfront_distribution.resume_deploy.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_cloudfront_distribution" "resume_deploy" {
+  origin {
+    domain_name              = aws_s3_bucket_website_configuration.resume_deploy.website_endpoint
+    origin_id                = "Origin_Name"
+        custom_origin_config {
+      origin_ssl_protocols     = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+      http_port                = 80
+      https_port               = 443
+      origin_keepalive_timeout = 5
+      origin_protocol_policy   = "http-only"
+    }
+  }
+
+  enabled             = true
+  is_ipv6_enabled     = true
+  comment             = "Cloudfront to host our resume website"
+  default_root_object = "index.html"
+
+
+  aliases = ["madheshwaran.site"]
+
+  viewer_certificate {
+    acm_certificate_arn = "arn:aws:acm:us-east-1:381492075565:certificate/61a756d4-ed28-4939-8e8d-f3fa30fc3e1d"
+    ssl_support_method = "sni-only"
+  }
+
+  default_cache_behavior {
+    allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods   = ["GET", "HEAD"]
+    target_origin_id = "Origin_Name"
+
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
+
+    viewer_protocol_policy = "redirect-to-https"
+    min_ttl                = 0
+    default_ttl            = 3600
+    max_ttl                = 86400
+  }
+
+   restrictions {
+    geo_restriction {
+      restriction_type = "none"
+    }
+  }
+
+  tags = {
+    Environment = "production"
+  }
+
+}
+
+resource "aws_cloudfront_origin_access_identity" "resume_deploy" {
+  comment = "OAI for resume website"
+}
