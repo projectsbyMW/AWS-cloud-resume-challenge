@@ -7,6 +7,36 @@
 	font-family:'Poppins', sans-serif;
 }
 
+/* common resources*/
+
+img
+{
+width: 100%;
+}
+
+.Title
+{
+color: #fff;
+font-size: 1.5em;
+margin-top: 20px;
+text-transform: uppercase;
+text-align: center;
+font-weight: 600;
+line-height: 1.4em;
+}
+
+.title2
+{
+color: #003147;
+font-size: 1.5em;
+margin-top: -30px;
+margin-bottom: 10px ;
+text-transform: uppercase;
+text-align: left;
+font-weight: 600;
+line-height: 1.4em;
+}
+
 body
 {
   background:lightblue;
@@ -45,37 +75,6 @@ font-weight:600;
   background:#003147;
   color:#fff;
 }
-
-/* common resources*/
-
-img
-{
-width: 100%;
-}
-
-.Title
-{
-color: #fff;
-font-size: 1.5em;
-margin-top: 20px;
-text-transform: uppercase;
-text-align: center;
-font-weight: 600;
-line-height: 1.4em;
-}
-
-.title2
-{
-color: #003147;
-font-size: 1.5em;
-margin-top: -30px;
-margin-bottom: 10px ;
-text-transform: uppercase;
-text-align: left;
-font-weight: 600;
-line-height: 1.4em;
-}
-
 
 .container
 {
@@ -291,7 +290,7 @@ footer .cp a
 color:#003147;
 text-decoration: none;
 pointer-events:cursor;
-font-weight:700;
+font-weight:600;
 }
 
 
