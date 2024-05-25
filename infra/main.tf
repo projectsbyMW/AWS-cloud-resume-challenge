@@ -271,6 +271,17 @@ resource "aws_route53_record" "resume_deploy" {
   }
 }
 
+resource "aws_route53_record" "resume_deploy_www" {
+  zone_id = aws_route53_zone.resume_deploy.zone_id
+  name    = "www.madheshwaran.site"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.resume_deploy.domain_name
+    zone_id                = aws_cloudfront_distribution.resume_deploy.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_cloudfront_distribution" "resume_deploy" {
   origin {
     domain_name              = aws_s3_bucket_website_configuration.resume_deploy.website_endpoint
@@ -290,10 +301,10 @@ resource "aws_cloudfront_distribution" "resume_deploy" {
   default_root_object = "index.html"
 
 
-  aliases = ["madheshwaran.site"]
+  aliases = ["madheshwaran.site","www.madheshwaran.site","*.madheshwaran.site"]
 
   viewer_certificate {
-    acm_certificate_arn = "arn:aws:acm:us-east-1:381492075565:certificate/61a756d4-ed28-4939-8e8d-f3fa30fc3e1d"
+    acm_certificate_arn = "arn:aws:acm:us-east-1:381492075565:certificate/966ead35-0765-4df8-8e8c-6b3e3253653a"
     ssl_support_method = "sni-only"
   }
 
