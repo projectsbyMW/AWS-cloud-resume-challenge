@@ -291,6 +291,7 @@ footer .cp
 footer .cp a
 {
 color:#003147;
+text-align: center;
 text-decoration: none;
 pointer-events:cursor;
 font-weight:600;
